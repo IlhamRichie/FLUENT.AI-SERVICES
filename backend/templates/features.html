@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Features - FLUENT{% endblock %}
+
+{% block content %}
+<section class="features-header">
+    <div class="container">
+        <h1>Powerful Features to <span>Elevate</span> Your Interview Skills</h1>
+        <p>FLUENT provides comprehensive analysis to help you shine in any interview scenario.</p>
+    </div>
+</section>
+
+<section class="features-list">
+    <div class="container">
+        <div class="row feature-item align-items-center">
+            <div class="col-lg-6">
+                <img src="{{ url_for('static', filename='images/2.png') }}" alt="Emotion Analysis" class="img-fluid">
+            </div>
+            <div class="col-lg-6">
+                <h2>Emotion Detection</h2>
+                <p>Our advanced AI detects your emotional state during the interview, helping you maintain the right level of confidence and composure.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> Real-time emotion tracking</li>
+                    <li><i class="fas fa-check-circle"></i> Nervousness detection</li>
+                    <li><i class="fas fa-check-circle"></i> Confidence level analysis</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row feature-item align-items-center">
+            <div class="col-lg-6 order-lg-2">
+                <img src="{{ url_for('static', filename='images/3.png') }}" alt="Speech Analysis" class="img-fluid">
+            </div>
+            <div class="col-lg-6 order-lg-1">
+                <h2>Speech Analysis</h2>
+                <p>Get detailed feedback on your speech patterns, including pace, clarity, and filler word usage.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> Words-per-minute tracking</li>
+                    <li><i class="fas fa-check-circle"></i> Filler word detection</li>
+                    <li><i class="fas fa-check-circle"></i> Speech clarity scoring</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="row feature-item align-items-center">
+            <div class="col-lg-6">
+                <img src="{{ url_for('static', filename='images/4.png') }}" alt="Pose Analysis" class="img-fluid">
+            </div>
+            <div class="col-lg-6">
+                <h2>Body Language Analysis</h2>
+                <p>Improve your nonverbal communication with our posture and gesture analysis.</p>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> Posture evaluation</li>
+                    <li><i class="fas fa-check-circle"></i> Head tilt detection</li>
+                    <li><i class="fas fa-check-circle"></i> Eye contact monitoring</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <div class="container text-center">
+        <h2>Ready to Transform Your Interview Skills?</h2>
+        <p>Join thousands of users who have improved their interview performance with FLUENT.</p>
+        <a href="/#" class="btn btn-primary btn-lg">Start Your Free Trial</a>
+    </div>
+</section>
+{% endblock %}

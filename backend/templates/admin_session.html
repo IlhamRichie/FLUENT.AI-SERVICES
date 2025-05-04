@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Interview Sessions - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <h1>Interview Sessions</h1>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Start Time</th>
+                    <th>Status</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for session in sessions %}
+                <tr>
+                    <td>{{ session.user_id }}</td>
+                    <td>{{ session.start_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <span class="badge bg-{% if session.status == 'completed' %}success{% else %}warning{% endif %}">
+                            {{ session.status }}
+                        </span>
+                    </td>
+                    <td>{{ session.category }}</td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-info">View Details</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

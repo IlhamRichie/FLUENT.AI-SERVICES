@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}API Documentation - FLUENT{% endblock %}
+
+{% block content %}
+<div class="container api-docs">
+    <h1 class="my-4">FLUENT API Documentation</h1>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="list-group" id="api-nav">
+                <a class="list-group-item list-group-item-action" href="#auth">Authentication</a>
+                <a class="list-group-item list-group-item-action" href="#users">Users</a>
+                <a class="list-group-item list-group-item-action" href="#interview">Interview</a>
+                <a class="list-group-item list-group-item-action" href="#analysis">Analysis</a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <!-- Authentication Section -->
+            <section id="auth" class="mb-5">
+                <h2 class="border-bottom pb-2">Authentication</h2>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        POST /login
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">User Login</h5>
+                        <pre><code>{
+  "username": "string",
+  "password": "string"
+}</code></pre>
+                        
+                        <h6>Response (Success):</h6>
+                        <pre><code>{
+  "status": "success",
+  "access_token": "string",
+  "refresh_token": "string",
+  "user": {
+    "username": "string",
+    "email": "string"
+  }
+}</code></pre>
+                        
+                        <a href="#" class="btn btn-sm btn-outline-primary">Try it out</a>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        POST /register
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">User Registration</h5>
+                        <pre><code>{
+  "email": "string",
+  "username": "string",
+  "password": "string",
+  "gender": "string",
+  "occupation": "string"
+}</code></pre>
+                        
+                        <h6>Response (Success):</h6>
+                        <pre><code>{
+  "status": "success",
+  "message": "User registered",
+  "user_id": "string"
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Interview Section -->
+            <section id="interview" class="mb-5">
+                <h2 class="border-bottom pb-2">Interview</h2>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        POST /api/interview/start
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Start New Interview</h5>
+                        <p class="text-muted">Requires authentication</p>
+                        <pre><code>{
+  "category": "general"
+}</code></pre>
+                        
+                        <h6>Response (Success):</h6>
+                        <pre><code>{
+  "status": "success",
+  "session_id": "string",
+  "current_question": "string",
+  "total_questions": 5
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        POST /api/interview/submit
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Submit Interview Answer</h5>
+                        <pre><code>{
+  "session_id": "string",
+  "answer_text": "string",
+  "audio_answer": "base64_encoded_string" (optional)
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Analysis Section -->
+            <section id="analysis" class="mb-5">
+                <h2 class="border-bottom pb-2">Analysis</h2>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        POST /analyze_realtime
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Real-time Analysis</h5>
+                        <pre><code>{
+  "frame": "base64_encoded_image"
+}</code></pre>
+                        
+                        <h6>Response:</h6>
+                        <pre><code>{
+  "emotion": "string",
+  "mouth": "string",
+  "pose": "string"
+}</code></pre>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        POST /analyze_speech
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Speech Analysis</h5>
+                        <p>Upload audio file (WAV format)</p>
+                        <h6>Response:</h6>
+                        <pre><code>{
+  "transcript": "string",
+  "word_count": 0,
+  "words_per_minute": 0
+}</code></pre>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

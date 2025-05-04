@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - FLUENT{% endblock %}
+
+{% block content %}
+<div class="admin-login-container d-flex align-items-center justify-content-center min-vh-100">
+    <div class="admin-login-box p-4 p-md-5 shadow-lg rounded-4 bg-white" style="max-width: 450px; width: 100%;">
+        <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='images/fluent-logo.png') }}" alt="FLUENT Logo" height="70" class="mb-3">
+            <h2 class="mt-2 mb-1 fw-bold">Admin Dashboard</h2>
+            <p class="text-muted">Secure access to the administration panel</p>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_login') }}" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label fw-medium">Username</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light">
+                        <i class="bi bi-person-fill text-secondary"></i>
+                    </span>
+                    <input type="text" class="form-control py-2" id="username" name="username" placeholder="Enter admin username" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label fw-medium">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-light">
+                        <i class="bi bi-lock-fill text-secondary"></i>
+                    </span>
+                    <input type="password" class="form-control py-2" id="password" name="password" placeholder="Enter your password" required>
+                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-medium">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+            </button>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} mt-3 alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="text-center mt-4 pt-3 border-top">
+            <small class="text-muted">
+                <i class="bi bi-shield-lock me-1"></i>Restricted access to authorized personnel only
+            </small>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-login-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    .admin-login-box {
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .toggle-password:hover {
+        background-color: #f8f9fa;
+    }
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+</style>
+
+<script>
+    // Toggle password visibility
+    document.querySelectorAll('.toggle-password').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const passwordInput = this.parentElement.querySelector('input');
+            const icon = this.querySelector('i');
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            icon.classList.toggle('bi-eye');
+            icon.classList.toggle('bi-eye-slash');
+        });
+    });
+    
+    // Form validation
+    (function() {
+        'use strict';
+        var forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms)
+            .forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+    })();
+</script>
+{% endblock %}

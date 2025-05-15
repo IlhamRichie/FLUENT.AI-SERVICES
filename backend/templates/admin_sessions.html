@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Interview Sessions - Admin{% endblock %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 fw-bold">Interview Sessions</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Sessions Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-3">
+            <h3 class="h5 mb-0 fw-bold">All Interview Sessions</h3>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>User</th>
+                            <th>Category</th>
+                            <th>Start Time</th>
+                            <th>Status</th>
+                            <th>Questions</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if sessions and sessions|length > 0 %}
+                        {% for session in sessions %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm me-2">
+                                        <div class="avatar-title bg-primary-subtle text-primary rounded-circle">
+                                            {{ session.user_id|string|slice(0,1) }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ session.user_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-info bg-opacity-10 text-info">{{ session.category|title }}</span></td>
+                            <td>
+                                <div class="fw-medium">{{ session.start_time.strftime('%b %d, %Y') }}</div>
+                                <small class="text-muted">{{ session.start_time.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if session.status == 'completed' %}success{% else %}warning{% endif %}-subtle text-{% if session.status == 'completed' %}success{% else %}warning{% endif %}">
+                                    {{ session.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ session.questions|length }}</td>
+                            <td class="text-end">
+                                <a href="#" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="tooltip" title="View">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No interview sessions found.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar-sm {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .avatar-title {
+        font-weight: 600;
+    }
+    [data-bs-toggle="tooltip"] {
+        cursor: pointer;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

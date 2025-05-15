@@ -15,7 +15,7 @@ admin_user = {
 }
 
 # Delete if exists
-users_collection.delete_one({"username": "admin"})
+users_collection.delete_one({"email": "admin"})
 
 # Insert new admin
 result = users_collection.insert_one(admin_user)

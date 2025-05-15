@@ -1,37 +1,42 @@
 {% extends "base.html" %}
-
 {% block title %}API Documentation - FLUENT{% endblock %}
-
 {% block content %}
-<div class="container api-docs">
-    <h1 class="my-4">FLUENT API Documentation</h1>
-    
+<div class="container api-docs my-5">
+    <h1 class="mb-4">FLUENT API Documentation</h1>
+    <p>Untuk mencoba endpoint secara langsung, silakan klik tombol di bawah ini:</p>
+    <a href="/api/docs/swagger" class="btn btn-primary btn-lg">Go to Interactive API Docs (Try it out)</a>
+    <p></p>
     <div class="row">
+        <!-- Sidebar Navigation -->
         <div class="col-md-3">
             <div class="list-group" id="api-nav">
-                <a class="list-group-item list-group-item-action" href="#auth">Authentication</a>
+                <a class="list-group-item list-group-item-action active" href="#auth">Authentication</a>
                 <a class="list-group-item list-group-item-action" href="#users">Users</a>
                 <a class="list-group-item list-group-item-action" href="#interview">Interview</a>
                 <a class="list-group-item list-group-item-action" href="#analysis">Analysis</a>
+                <a class="list-group-item list-group-item-action" href="#admin">Admin</a>
             </div>
         </div>
-        
+
+        <!-- Main Content -->
         <div class="col-md-9">
             <!-- Authentication Section -->
             <section id="auth" class="mb-5">
                 <h2 class="border-bottom pb-2">Authentication</h2>
-                
+
+                <!-- Login -->
                 <div class="card mb-3">
                     <div class="card-header bg-primary text-white">
                         POST /login
                     </div>
                     <div class="card-body">
                         <h5 class="card-title">User Login</h5>
+                        <p class="text-muted">Authenticate and receive access tokens.</p>
                         <pre><code>{
-  "username": "string",
+  "email": "string",
   "password": "string"
 }</code></pre>
-                        
+
                         <h6>Response (Success):</h6>
                         <pre><code>{
   "status": "success",
@@ -39,14 +44,23 @@
   "refresh_token": "string",
   "user": {
     "username": "string",
-    "email": "string"
+    "email": "string",
+    "gender": "string",
+    "occupation": "string",
+    "is_active": true
   }
 }</code></pre>
-                        
-                        <a href="#" class="btn btn-sm btn-outline-primary">Try it out</a>
+
+                        <h6>Error Responses:</h6>
+                        <ul>
+                            <li>400: Missing email or password</li>
+                            <li>401: Invalid credentials</li>
+                            <li>403: Account is inactive</li>
+                        </ul>
                     </div>
                 </div>
-                
+
+                <!-- Register -->
                 <div class="card mb-3">
                     <div class="card-header bg-primary text-white">
                         POST /register
@@ -60,21 +74,83 @@
   "gender": "string",
   "occupation": "string"
 }</code></pre>
-                        
+
                         <h6>Response (Success):</h6>
                         <pre><code>{
   "status": "success",
-  "message": "User registered",
-  "user_id": "string"
+  "message": "User registered successfully",
+  "user": {
+    "id": "string",
+    "username": "string",
+    "email": "string"
+  }
+}</code></pre>
+
+                        <h6>Error Responses:</h6>
+                        <ul>
+                            <li>400: Incomplete data</li>
+                            <li>400: Username or email already exists</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Refresh Token -->
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        POST /refresh
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Refresh Access Token</h5>
+                        <pre><code>{
+  "refresh_token": "string"
+}</code></pre>
+
+                        <h6>Response (Success):</h6>
+                        <pre><code>{
+  "status": "success",
+  "access_token": "string"
+}</code></pre>
+
+                        <h6>Error Responses:</h6>
+                        <ul>
+                            <li>401: Missing or invalid refresh token</li>
+                            <li>401: Expired refresh token</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Users Section -->
+            <section id="users" class="mb-5">
+                <h2 class="border-bottom pb-2">Users</h2>
+
+                <!-- Update User -->
+                <div class="card mb-3">
+                    <div class="card-header bg-warning text-white">
+                        PUT /user/update
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Update User Profile</h5>
+                        <p class="text-muted">Requires authentication</p>
+                        <pre><code>{
+  "username": "string",   // optional
+  "occupation": "string" // optional
+}</code></pre>
+
+                        <h6>Response (Success):</h6>
+                        <pre><code>{
+  "status": "success",
+  "message": "User data updated"
 }</code></pre>
                     </div>
                 </div>
             </section>
-            
+
             <!-- Interview Section -->
             <section id="interview" class="mb-5">
                 <h2 class="border-bottom pb-2">Interview</h2>
-                
+
+                <!-- Start Interview -->
                 <div class="card mb-3">
                     <div class="card-header bg-success text-white">
                         POST /api/interview/start
@@ -85,7 +161,7 @@
                         <pre><code>{
   "category": "general"
 }</code></pre>
-                        
+
                         <h6>Response (Success):</h6>
                         <pre><code>{
   "status": "success",
@@ -95,7 +171,8 @@
 }</code></pre>
                     </div>
                 </div>
-                
+
+                <!-- Submit Answer -->
                 <div class="card mb-3">
                     <div class="card-header bg-success text-white">
                         POST /api/interview/submit
@@ -109,48 +186,124 @@
 }</code></pre>
                     </div>
                 </div>
+
+                <!-- Get Results -->
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        GET /api/interview/results/<session_id>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Get Interview Results</h5>
+                        <p class="text-muted">Requires authentication</p>
+                        <h6>Response Example:</h6>
+                        <pre><code>{
+  "status": "success",
+  "results": {
+    "session_id": "string",
+    "overall_score": 78.5,
+    "questions": [
+      {
+        "question_text": "string",
+        "evaluation": {
+          "score": 90,
+          "matched_keywords": ["keyword1", "keyword2"]
+        }
+      }
+    ]
+  }
+}</code></pre>
+                    </div>
+                </div>
             </section>
-            
+
             <!-- Analysis Section -->
             <section id="analysis" class="mb-5">
                 <h2 class="border-bottom pb-2">Analysis</h2>
-                
+
+                <!-- Realtime Video Analysis -->
                 <div class="card mb-3">
                     <div class="card-header bg-info text-white">
                         POST /analyze_realtime
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">Real-time Analysis</h5>
+                        <h5 class="card-title">Real-time Video Analysis</h5>
+                        <p class="text-muted">Analyzes emotion, mouth movement, and pose from video frame.</p>
                         <pre><code>{
   "frame": "base64_encoded_image"
 }</code></pre>
-                        
+
                         <h6>Response:</h6>
                         <pre><code>{
-  "emotion": "string",
-  "mouth": "string",
-  "pose": "string"
+  "emotion": "happy",
+  "mouth": "talking",
+  "pose": "looking_straight"
 }</code></pre>
                     </div>
                 </div>
-                
+
+                <!-- Speech Analysis -->
                 <div class="card mb-3">
                     <div class="card-header bg-info text-white">
                         POST /analyze_speech
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">Speech Analysis</h5>
-                        <p>Upload audio file (WAV format)</p>
+                        <h5 class="card-title">Speech-to-Text & Analysis</h5>
+                        <p class="text-muted">Upload audio file (WAV format)</p>
                         <h6>Response:</h6>
                         <pre><code>{
   "transcript": "string",
-  "word_count": 0,
-  "words_per_minute": 0
+  "word_count": 50,
+  "words_per_minute": 100,
+  "language": "id-ID"
 }</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Section -->
+            <section id="admin" class="mb-5">
+                <h2 class="border-bottom pb-2">Admin</h2>
+
+                <!-- Admin Login -->
+                <div class="card mb-3">
+                    <div class="card-header bg-dark text-white">
+                        POST /admin/login
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Admin Login</h5>
+                        <pre><code>{
+  "email": "string",
+  "password": "string"
+}</code></pre>
+
+                        <h6>Redirects to admin dashboard on success</h6>
+                    </div>
+                </div>
+
+                <!-- Toggle User Status -->
+                <div class="card mb-3">
+                    <div class="card-header bg-dark text-white">
+                        POST /admin/users/toggle-status/<user_id>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Toggle User Activation</h5>
+                        <p class="text-muted">Requires admin login</p>
+                        <h6>Response:</h6>
+                        <p>Redirects back to dashboard with flash message.</p>
                     </div>
                 </div>
             </section>
         </div>
     </div>
 </div>
+<style>
+.api-docs pre {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.375rem;
+}
+.card-header {
+    font-weight: bold;
+}
+</style>
 {% endblock %}

@@ -14,6 +14,11 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from db import users_collection, questions_collection, sessions_collection
 from flask_swagger_ui import get_swaggerui_blueprint
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+import plotly.express as px
+import pandas as pd
+from datetime import datetime, timedelta
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -25,15 +30,22 @@ CORS(app, resources={
 # Initialize Bcrypt
 bcrypt = Bcrypt(app)
 
+SWAGGER_URL = '/api/docs/swagger'
+API_URL = '/static/swagger.json'
+
+swaggerui_blueprint = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={'app_name': "Fluent Interview API"}
+)
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+
 # JWT Configuration
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET', 'your-very-secret-key-here')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(days=30)
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'another-secret-key-for-sessions')
 app.config['INACTIVITY_DAYS'] = 3  # Days before user is marked inactive
-
-SWAGGER_URL = '/api/docs/swagger'
-API_URL = '/static/swagger.json'
 
 # MongoDB Configuration
 client = MongoClient("mongodb://localhost:27017/")
@@ -64,11 +76,12 @@ from detectors.emotion_detector import detect_emotion_status
 from detectors.mouth_detector import detect_mouth_status
 from detectors.pose_detector import detect_pose_status
 
-def get_user_by_username(username):
-    """Utility function to get user by username"""
-    return users_collection.find_one({"username": username})
+def get_user_by_email(email):
+    """Utility function to get user by email"""
+    return users_collection.find_one({"email": email})
 
 # JWT Token Required Decorator
+# Update the token_required decorator
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -86,7 +99,7 @@ def token_required(f):
         
         try:
             data = jwt.decode(token, app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
-            current_user = users_collection.find_one({"username": data['username']})
+            current_user = users_collection.find_one({"email": data['email']})  # Changed to use email
             
             # Check if user is active
             if not current_user.get('is_active', True):
@@ -107,11 +120,11 @@ def token_required(f):
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'username' not in session:
+        if 'email' not in session:
             flash('Please login first', 'danger')
             return redirect(url_for('admin_login'))
         
-        user = users_collection.find_one({"username": session['username']})
+        user = users_collection.find_one({"email": session['email']})
         if not user or not user.get('is_admin', False):
             flash('You do not have admin privileges', 'danger')
             return redirect(url_for('index'))
@@ -155,7 +168,7 @@ def register():
         "is_active": True,
         "last_login": None,
         "created_at": datetime.utcnow(),
-        "is_admin": False
+        "is_admin": data.get("is_admin", False)  # Add this field
     }
     
     try:
@@ -171,14 +184,14 @@ def register():
         })
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
+    
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    if not data or not data.get('username') or not data.get('password'):
-        return jsonify({"status": "fail", "message": "Missing username or password"}), 400
+    if not data or not data.get('email') or not data.get('password'):
+        return jsonify({"status": "fail", "message": "Missing email or password"}), 400
 
-    user = users_collection.find_one({"username": data["username"]})
+    user = users_collection.find_one({"email": data["email"]})
     if not user:
         return jsonify({"status": "fail", "message": "User not found"}), 404
 
@@ -197,12 +210,12 @@ def login():
     
     # Generate tokens
     access_token = jwt.encode({
-        'username': user['username'],
+        'email': user['email'],  # Changed from username to email
         'exp': datetime.utcnow() + app.config['JWT_ACCESS_TOKEN_EXPIRES']
     }, app.config['JWT_SECRET_KEY'], algorithm="HS256")
 
     refresh_token = jwt.encode({
-        'username': user['username'],
+        'email': user['email'],  # Changed from username to email
         'exp': datetime.utcnow() + app.config['JWT_REFRESH_TOKEN_EXPIRES']
     }, app.config['JWT_SECRET_KEY'], algorithm="HS256")
 
@@ -228,13 +241,13 @@ def refresh():
     
     try:
         data = jwt.decode(refresh_token, app.config['JWT_SECRET_KEY'], algorithms=["HS256"])
-        user = get_user_by_username(data['username'])
+        user = get_user_by_email(data['email'])  # Changed to use email
         
         if not user:
             return jsonify({"status": "fail", "message": "User not found"}), 404
         
         new_access_token = jwt.encode({
-            'username': user['username'],
+            'email': user['email'],  # Changed from username to email
             'exp': datetime.utcnow() + app.config['JWT_ACCESS_TOKEN_EXPIRES']
         }, app.config['JWT_SECRET_KEY'], algorithm="HS256")
         
@@ -288,6 +301,29 @@ def analyze_realtime(current_user):
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+    
+    
+@app.route('/user/update', methods=['PUT'])
+@token_required
+def update_user(current_user):
+    data = request.get_json()
+    update_fields = {}
+
+    if "username" in data:
+        update_fields["username"] = data["username"]
+    if "occupation" in data:
+        update_fields["occupation"] = data["occupation"]
+
+    if not update_fields:
+        return jsonify({"status": "fail", "message": "No valid fields to update"}), 400
+
+    users_collection.update_one(
+        {"_id": current_user["_id"]},
+        {"$set": update_fields}
+    )
+
+    return jsonify({"status": "success", "message": "User data updated"})
+
     
 @app.route("/analyze_speech", methods=["POST"])
 @token_required
@@ -468,12 +504,12 @@ def get_results(current_user, session_id):
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('email')
         password = request.form.get('password')
         
-        user = get_user_by_username(username)
+        user = get_user_by_email(email)
         if user and user.get('is_admin', False) and bcrypt.check_password_hash(user['password'], password):
-            session['username'] = user['username']
+            session['email'] = user['email']
             session['is_admin'] = True
             return redirect(url_for('admin_dashboard'))
         else:
@@ -496,21 +532,84 @@ def admin_sessions():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    # Check for inactive users first
     check_inactive_users()
-    
-    # Get stats for dashboard
+
+    # Ambil data pengguna
     user_count = users_collection.count_documents({})
     today_sessions = sessions_collection.count_documents({
         "start_time": {
             "$gte": datetime.combine(datetime.today(), datetime.min.time())
         }
     })
-    
-    # Get recent activities
+
+    # Data registrasi pengguna
+    pipeline = [
+        {"$project": {
+            "year": {"$year": "$created_at"},
+            "month": {"$month": "$created_at"},
+            "day": {"$dayOfMonth": "$created_at"}
+        }},
+        {"$group": {
+            "_id": {"year": "$year", "month": "$month", "day": "$day"},
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id": 1}}
+    ]
+    reg_data = list(users_collection.aggregate(pipeline))
+    df_reg = pd.DataFrame(reg_data)
+    if not df_reg.empty:
+        df_reg['date'] = pd.to_datetime(df_reg['_id'].apply(lambda x: f"{x['year']}-{x['month']}-{x['day']}"))
+        fig_registration = px.line(df_reg, x='date', y='count', title='User Registration Trend')
+        registration_chart = fig_registration.to_html(full_html=False)
+    else:
+        registration_chart = "<p>No registration data</p>"
+
+    # Gender Distribution
+    gender_counts = users_collection.aggregate([
+        {"$group": {"_id": "$gender", "count": {"$sum": 1}}}
+    ])
+    df_gender = pd.DataFrame(gender_counts)
+    if not df_gender.empty:
+        fig_gender = px.pie(df_gender, names='_id', values='count', title='Gender Distribution')
+        gender_chart = fig_gender.to_html(full_html=False)
+    else:
+        gender_chart = "<p>No gender data</p>"
+
+    # Occupation Distribution
+    occ_counts = users_collection.aggregate([
+        {"$group": {"_id": "$occupation", "count": {"$sum": 1}}}
+    ])
+    df_occ = pd.DataFrame(occ_counts)
+    if not df_occ.empty:
+        fig_occ = px.pie(df_occ, names='_id', values='count', title='Occupation Distribution')
+        occupation_chart = fig_occ.to_html(full_html=False)
+    else:
+        occupation_chart = "<p>No occupation data</p>"
+
+    # User Activity Overview
+    session_pipeline = [
+        {"$project": {
+            "year": {"$year": "$start_time"},
+            "month": {"$month": "$start_time"},
+            "day": {"$dayOfMonth": "$start_time"}
+        }},
+        {"$group": {
+            "_id": {"year": "$year", "month": "$month", "day": "$day"},
+            "count": {"$sum": 1}
+        }},
+        {"$sort": {"_id": 1}}
+    ]
+    act_data = list(sessions_collection.aggregate(session_pipeline))
+    df_act = pd.DataFrame(act_data)
+    if not df_act.empty:
+        df_act['date'] = pd.to_datetime(df_act['_id'].apply(lambda x: f"{x['year']}-{x['month']}-{x['day']}"))
+        fig_activity = px.bar(df_act, x='date', y='count', title='Daily Interview Sessions')
+        activity_chart = fig_activity.to_html(full_html=False)
+    else:
+        activity_chart = "<p>No activity data</p>"
+
+    # Data lainnya
     recent_activities = list(db.activity_log.find().sort("time", -1).limit(10)) if hasattr(db, 'activity_log') else []
-    
-    # Get all users data
     all_users = list(users_collection.find({}, {
         "_id": 1,
         "username": 1,
@@ -521,12 +620,16 @@ def admin_dashboard():
         "is_active": 1,
         "last_login": 1
     }).sort("created_at", -1))
-    
+
     return render_template('admin_dashboard.html',
-                         user_count=user_count,
-                         today_sessions=today_sessions,
-                         recent_activities=recent_activities,
-                         all_users=all_users)
+                           user_count=user_count,
+                           today_sessions=today_sessions,
+                           recent_activities=recent_activities,
+                           all_users=all_users,
+                           registration_chart=registration_chart,
+                           gender_chart=gender_chart,
+                           occupation_chart=occupation_chart,
+                           activity_chart=activity_chart)
     
 @app.route('/admin/users/toggle-status/<user_id>', methods=['POST'])
 @admin_required

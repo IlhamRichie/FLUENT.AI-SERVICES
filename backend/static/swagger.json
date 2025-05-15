@@ -1,0 +1,362 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Fluent Interview API",
+      "description": "API untuk sistem wawancara berbasis AI",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "http://localhost:5000"
+      }
+    ],
+    "paths": {
+      "/login": {
+        "post": {
+          "summary": "User Login",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" },
+                    "password": { "type": "string" }
+                  },
+                  "required": ["email", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "status": "success",
+                    "access_token": "string",
+                    "refresh_token": "string",
+                    "user": {
+                      "username": "john_doe",
+                      "email": "john@example.com",
+                      "gender": "male",
+                      "occupation": "Engineer",
+                      "is_active": true
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Invalid credentials or expired token"
+            }
+          }
+        }
+      },
+      "/register": {
+        "post": {
+          "summary": "Register New User",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" },
+                    "username": { "type": "string" },
+                    "password": { "type": "string" },
+                    "gender": { "type": "string" },
+                    "occupation": { "type": "string" }
+                  },
+                  "required": ["email", "username", "password", "gender", "occupation"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Registration successful",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "status": "success",
+                    "message": "User registered successfully",
+                    "user": {
+                      "id": "string",
+                      "username": "john_doe",
+                      "email": "john@example.com"
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Incomplete data or duplicate email/username"
+            }
+          }
+        }
+      },
+      "/refresh": {
+        "post": {
+          "summary": "Refresh Access Token",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "refresh_token": { "type": "string" }
+                  },
+                  "required": ["refresh_token"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Token refreshed",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "status": "success",
+                    "access_token": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/analyze_realtime": {
+        "post": {
+          "summary": "Real-time Video Analysis",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "frame": { "type": "string", "format": "base64" }
+                  },
+                  "required": ["frame"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Analysis result",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "status": "success",
+                    "results": {
+                      "emotion": "happy",
+                      "mouth": "talking",
+                      "pose": "looking_straight"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/analyze_speech": {
+        "post": {
+          "summary": "Speech-to-Text & Analysis",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "properties": {
+                    "audio": { "type": "string", "format": "binary" }
+                  },
+                  "required": ["audio"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Transcript and analysis returned",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "transcript": "This is a sample speech",
+                    "word_count": 5,
+                    "words_per_minute": 100,
+                    "language": "id-ID"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/user/update": {
+        "put": {
+          "summary": "Update User Profile",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": false,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "username": { "type": "string" },
+                    "occupation": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Profile updated"
+            }
+          }
+        }
+      },
+      "/api/interview/start": {
+        "post": {
+          "summary": "Start Interview Session",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "category": { "type": "string", "default": "general" }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Session started",
+              "content": {
+                "application/json": {
+                  "example": {
+                    "session_id": "abc123",
+                    "current_question": "Tell me about yourself"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/interview/submit": {
+        "post": {
+          "summary": "Submit Interview Answer",
+          "security": [{ "bearerAuth": [] }],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "session_id": { "type": "string" },
+                    "answer_text": { "type": "string" },
+                    "audio_answer": { "type": "string", "format": "base64", "nullable": true }
+                  },
+                  "required": ["session_id", "answer_text"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Answer submitted with evaluation"
+            }
+          }
+        }
+      },
+      "/api/interview/results/{session_id}": {
+        "get": {
+          "summary": "Get Interview Results",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "session_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Interview results retrieved"
+            }
+          }
+        }
+      },
+      "/admin/login": {
+        "post": {
+          "summary": "Admin Login",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/x-www-form-urlencoded": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "email": { "type": "string" },
+                    "password": { "type": "string" }
+                  },
+                  "required": ["email", "password"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "302": {
+              "description": "Redirect to admin dashboard on success"
+            }
+          }
+        }
+      },
+      "/admin/users/toggle-status/{user_id}": {
+        "post": {
+          "summary": "Toggle User Activation",
+          "security": [{ "bearerAuth": [] }],
+          "parameters": [
+            {
+              "name": "user_id",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string" }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User status toggled"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {
+        "bearerAuth": {
+          "type": "http",
+          "scheme": "bearer",
+          "bearerFormat": "JWT"
+        }
+      }
+    }
+  }
